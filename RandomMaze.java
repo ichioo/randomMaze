@@ -1,4 +1,5 @@
 
+import java.lang.Math;
 import java.util.Random;
 
 public class RandomMaze {
@@ -20,6 +21,7 @@ public class RandomMaze {
 
     private int startPosRow, startPosCol;
     private int endPosRow, endPosCol;
+    private int point1Row, point1Col;
 
     public RandomMaze () {
         createMaze();
@@ -31,7 +33,7 @@ public class RandomMaze {
         fillMaze();
         createStartAndEnd();
         createMiddlePoints();
-        createPathFinder();
+        findPathToPoint();
     }
 
     private void createSize () {
@@ -76,31 +78,31 @@ public class RandomMaze {
 
     private void createMiddlePoints () {
 
-        Random random = new Random();
+        int row = Math.abs(startPosRow - endPosRow) / 2;
+        int column = Math.abs(startPosCol - endPosCol) / 2;
 
-        int row = random.nextInt(rows);
-        int column = random.nextInt(columns);
-
-        if (row == 0) {
-            row = 1;
-        } else if (row == rows-1) {
-            row = rows - 2; 
+        if (row == 1 && column == 1) {
+            row = rows / 2;
+            column = columns / 2;
         }
         if (column == 0) {
-            column = 1;
-        } else if (column == columns-1) {
-            column = columns - 2; 
+            column = columns / 2;
+        }
+        if (row == 0) {
+            row = rows / 2;
         }
 
-        maze[row][column] = MIDDLE_POINT;
+        point1Row = row;
+        point1Col = column;
+        maze[point1Row][point1Col] = MIDDLE_POINT;
     }
 
-    private void createPathFinder () {
+    private void findPathToPoint () {
 
-        maze[4][4] = 'T';
         PathFinder pFinder = new PathFinder(rows, columns);
-        pFinder.findPath(startPosRow, startPosCol, 4, 4);
-        System.out.println(pFinder);
+        pFinder.setRandomMaze(this);
+        pFinder.findPath(startPosRow, startPosCol, point1Row, point1Col);
+        pFinder.findPath(point1Row, point1Col, endPosRow, endPosCol);
     }
 
     //--
@@ -245,5 +247,12 @@ public class RandomMaze {
         }
 
         return outString;
+    }
+
+    public void setPathCell (int row, int column) {
+
+        if (!isEnd(row, column)) {
+            maze[row][column] = PATH;
+        }
     }
 }

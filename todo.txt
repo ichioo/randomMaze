@@ -1,3 +1,3 @@
 
 - random points that the correct path has to reach before going to the end point
-- pathfinder to reach thoese points
+- reaching points using straight lines: point at 5,7 start at 2,8: go to 5,8 and then to 5,7 (type of thing)
