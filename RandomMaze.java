@@ -9,17 +9,17 @@ public class RandomMaze {
     private int columns;
     private int minColumns = 7;
     private int maxColumns = 10;
-    private String[][] maze;
+
+    private char[][] maze;
 
     private char WALL = 'W';
     private char PATH = ' ';
     private char START = 'S';
     private char END = 'E'; 
+    private char MIDDLE_POINT = 'P';
 
-    private int startPosRow;
-    private int startPosCol;
-    private int endPosRow;
-    private int endPosCol;
+    private int startPosRow, startPosCol;
+    private int endPosRow, endPosCol;
 
     public RandomMaze () {
         createMaze();
@@ -30,7 +30,8 @@ public class RandomMaze {
         createSize();
         fillMaze();
         createStartAndEnd();
-        createRanCorrectPath();
+        createMiddlePoints();
+        createPathFinder();
     }
 
     private void createSize () {
@@ -39,7 +40,7 @@ public class RandomMaze {
 
         rows = random.nextInt((maxRows + 1) - minRows) + minRows;
         columns = random.nextInt((maxColumns + 1) - minColumns) + minColumns;
-        maze = new String[rows+1][columns+1];
+        maze = new char[rows+1][columns+1];
 
         random = null;
     }
@@ -49,7 +50,7 @@ public class RandomMaze {
         for (int row=0; row<rows; row++) {
             for (int column=0; column<columns; column++) {
 
-                maze[row][column] = intoBrackets(WALL);
+                maze[row][column] = WALL;
             }
         }
     }
@@ -73,9 +74,34 @@ public class RandomMaze {
         random = null;
     }
 
-    private void createRanCorrectPath () {
-        
-    } 
+    private void createMiddlePoints () {
+
+        Random random = new Random();
+
+        int row = random.nextInt(rows);
+        int column = random.nextInt(columns);
+
+        if (row == 0) {
+            row = 1;
+        } else if (row == rows-1) {
+            row = rows - 2; 
+        }
+        if (column == 0) {
+            column = 1;
+        } else if (column == columns-1) {
+            column = columns - 2; 
+        }
+
+        maze[row][column] = MIDDLE_POINT;
+    }
+
+    private void createPathFinder () {
+
+        maze[4][4] = 'T';
+        PathFinder pFinder = new PathFinder(rows, columns);
+        pFinder.findPath(startPosRow, startPosCol, 4, 4);
+        System.out.println(pFinder);
+    }
 
     //--
     private boolean isEnd (int row, int column) {
@@ -98,7 +124,7 @@ public class RandomMaze {
 
     private boolean isPath (int row, int column) {
 
-        if (maze[row][column].equals(intoBrackets(PATH))) {
+        if (maze[row][column] == PATH) {
             return true;
         }
 
@@ -147,11 +173,11 @@ public class RandomMaze {
         for (int row=0; row<rows; row++) {
             for (int column=0; column<columns; column++) {
 
-                if (maze[row][column].equals("[" + START + "]")) {
+                if (maze[row][column] == START) {
                     startPosRow = row;
                     startPosCol = column;
 
-                } else if (maze[row][column].equals("[" + END + "]")) {
+                } else if (maze[row][column] == END) {
                     endPosRow = row;
                     endPosCol = column;
 
@@ -169,44 +195,40 @@ public class RandomMaze {
                 int column = random.nextInt(columns);
 
                 //excludes angles
-                if (column == 0) {
-                    column = 1;
-                } else if (column == (columns-1)) {
-                    column = columns-2;
+                if (column == 0 || column == 1) {
+                    column = 2;
+                } else if (column == (columns-1) || column == (columns-2)) {
+                    column = columns-3;
                 }
 
                 if (side == 0) {
-                    maze[0][column] = intoBrackets(character);
+                    maze[0][column] = character;
                 } else {
-                    maze[rows-1][column] = intoBrackets(character);
+                    maze[rows-1][column] = character;
                 }
                 break;
             case 1,3:      //left and right
                 int row = random.nextInt(rows);
 
                 //excludes angle
-                if (row == 0) {
-                    row = 1;
-                } else if (row == (rows-1)) {
-                    row = rows - 2;
+                if (row == 0 || row == 1) {
+                    row = 2;
+                } else if (row == (rows-1) || row == (rows-2)) {
+                    row = rows - 3;
                 }
 
                 if (side == 1) {
-                    maze[row][0] = intoBrackets(character);
+                    maze[row][0] = character;
 
                 } else {
-                    maze[row][columns-1] = intoBrackets(character);
+                    maze[row][columns-1] = character;
                 }
         }
 
         random = null;
     }
 
-    private String intoBrackets (char character) {
-        return "[" + character + "]";
-    }
-
-    public String[][] getMaze () {
+    public char[][] getMaze () {
         return maze;
     }
 
@@ -217,7 +239,7 @@ public class RandomMaze {
         for (int row=0; row<rows; row++) {
             for (int column=0; column<columns; column++) {
 
-                outString += maze[row][column];
+                outString += ("["+maze[row][column]+"]");
             }
             outString += "\n";
         }
