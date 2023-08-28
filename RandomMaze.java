@@ -5,11 +5,11 @@ import java.util.Random;
 public class RandomMaze {
     
     private int rows;
-    private int minRows = 8;
-    private int maxRows = 10;
+    private int minRows;
+    private int maxRows;
     private int columns;
-    private int minColumns = 8;
-    private int maxColumns = 10;
+    private int minColumns;
+    private int maxColumns;
 
     private char[][] maze;
 
@@ -27,7 +27,12 @@ public class RandomMaze {
     private int currentRow;
     private int currentCol;
 
-    public RandomMaze () {
+    public RandomMaze (int minRows, int maxRows, int minColumns, int maxColumns) {
+        this.minRows = minRows;
+        this.maxRows = maxRows;
+        this.minColumns = minColumns;
+        this.maxColumns = maxColumns;
+
         createMaze();
     }
     
@@ -39,7 +44,7 @@ public class RandomMaze {
         createMiddlePoint();
         goToMiddlePoint();
         goToEnd();
-        
+        createRandomPaths();
         
     }
 
@@ -110,35 +115,7 @@ public class RandomMaze {
         currentRow = startPosRow;
         
         //conditions to try to make the path better
-        if (Math.abs(startPosRow-endPosCol) == 2) {
-
-            //avoids going into sides
-            if (startPosCol == 0) {
-                currentCol++;
-                setPathCell(currentRow, currentCol);
-            } else if (startPosCol == columns - 1) {
-                currentCol--;
-                setPathCell(currentRow, currentCol);
-            }
-
-            goToRow(pointRow);
-            goToColumn(pointCol);
-
-        } else if (pointRow == endPosRow+2 || pointRow == endPosRow-2) { 
-
-            //avoids going into sides
-            if (startPosCol == 0) {
-                currentCol++;
-                setPathCell(currentRow, currentCol);
-            } else if (startPosCol == columns - 1) {
-                currentCol--;
-                setPathCell(currentRow, currentCol);
-            }
-
-            goToRow(pointRow);
-            goToColumn(pointCol);
-        
-        } else if (startPosRow > endPosRow) {
+        if (startPosRow > endPosRow) {
             //avoids going into sides
             if (startPosCol == 0) {
                 currentCol++;
@@ -173,39 +150,132 @@ public class RandomMaze {
 
             goToEndCol();
             goToEndRow();
-        } else if ((currentRow == endPosCol+1 || currentRow == endPosCol-1 ) && startPosRow > currentRow) {
-
-            goToEndCol();
-            goToEndRow();
-        } else if ((currentRow == endPosRow-1 || currentRow == endPosRow+1) && startPosRow < currentRow) {
-
-            goToEndCol();
-            goToEndRow();
-        } else if ((currentCol == startPosCol+1 || currentCol == startPosCol-1) && Math.abs(startPosRow-endPosRow) == 2) {
-
-            goToEndCol();
-            goToEndRow();
-        } else if (Math.abs(startPosRow-endPosRow) == 2) {
-
-            goToEndCol();
-            goToEndRow();
         } else if (currentRow > endPosRow) {
             goToEndRow();
             goToEndCol();
 
-        } else if (currentRow == startPosRow+2 || currentRow == startPosRow-2) {
+        } 
 
-            goToEndRow();
-            goToEndCol();
-        } else if (currentRow == endPosRow+2 || currentRow == endPosRow-2) {
+    }
 
-            goToEndCol();
-            goToEndRow();
+    private void createRandomPaths () {
+
+        for (int repeats=0; repeats<20; repeats++) {
+
+            for (int row=1; row<rows-1; row++) {
+                for (int column=1; column<columns-1; column++) {
+
+                    if (maze[row][column] == PATH) {
+                        createRandomFrom(row, column);
+                    }   
+
+                }
+            }
         }
 
     }
 
     //--
+    private void createRandomFrom (int row, int column) {
+
+        Random random = new Random();
+        int prevRow = row;
+        int prevCol = column;
+        int nextRow = prevRow;
+        int nextCol = prevCol;
+
+        int direction;
+
+        direction = random.nextInt(4);
+
+        switch (direction) {
+            //up
+            case 0:
+                nextRow = prevRow - 1;
+                if (canCreatePath(nextRow, nextCol, prevRow, prevCol)) {
+                    maze[nextRow][nextCol] = PATH;
+                } else {
+                    nextRow = prevRow;
+                }
+                break;
+            //down
+            case 1:
+                nextRow = prevRow + 1;
+                if (canCreatePath(nextRow, nextCol, prevRow, prevCol)) {
+                    maze[nextRow][nextCol] = PATH;
+                } else {
+                    nextRow = prevRow;
+                }
+                break;
+            //left
+            case 2:
+                nextCol = prevCol - 1;
+                if (canCreatePath(nextRow, nextCol, prevRow, prevCol)) {
+                    maze[nextRow][nextCol] = PATH;
+                } else {
+                    nextCol = prevCol;
+                }
+                break;
+            //right
+            case 3:
+                nextCol = prevCol + 1;
+                if (canCreatePath(nextRow, nextCol, prevRow, prevCol)) {
+                    maze[nextRow][nextCol] = PATH;
+                } else {
+                    nextCol = prevCol;
+                }
+                break;
+        }
+    }
+
+    private boolean canCreatePath (int row, int column, int prevRow, int prevCol) {
+
+        if (!hasPathsAround(row, column, prevRow, prevCol) && !isASide(row, column)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean hasPathsAround (int row, int column, int prevRow, int prevCol) {
+
+        //up
+        try {
+            if (maze[row-1][column] == PATH && row-1 != prevRow) {
+                return true;
+            }
+        } catch (Exception e) { }
+        //down
+        try {
+            if (maze[row+1][column] == PATH && row+1 != prevRow) {
+                return true;
+            }
+        } catch (Exception e) { }
+        //left
+        try {
+            if (maze[row][column-1] == PATH && column-1 != prevCol) {
+                return true;
+            }
+        } catch (Exception e) { }
+        //right
+        try {
+            if (maze[row][column+1] == PATH && column+1 != prevCol) {
+                return true;
+            }
+        } catch (Exception e) { }
+
+        return false;
+    }
+
+    private boolean isASide (int row, int column) {
+
+        if (row == 0 || row == rows - 1 || column == 0 || column == columns - 1) {
+            return true;
+        }
+
+        return false;
+    }
+
     private void goToEndCol () {
         if (endPosCol == 0) {
                 goToColumn(endPosCol+1);
