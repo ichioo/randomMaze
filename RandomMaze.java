@@ -160,7 +160,7 @@ public class RandomMaze {
 
     private void createRandomPaths () {
 
-        for (int repeats=0; repeats<20; repeats++) {
+        for (int repeats=0; repeats<rows*columns; repeats++) {
 
             for (int row=1; row<rows-1; row++) {
                 for (int column=1; column<columns-1; column++) {
